@@ -66,7 +66,7 @@ export async function moduleView(root, rid, key) {
   $('#q').addEventListener('input', debounce((e) => { F.q = e.target.value; load(); }, 300));
   $('#st').addEventListener('change', (e) => { F.status = e.target.value; load(); });
   $$('[data-exp]', root).forEach((b) => b.addEventListener('click', () => download(`/api/modules/${key}/export?fmt=${b.dataset.exp}`)));
-  root.addEventListener('click', async (e) => {
+  const onClick = async (e) => {
     if (e.target.closest('#add')) return recordModal(mod, null, () => load());
     const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
     if (ed) return recordModal(mod, items.find((r) => r.id === +ed.dataset.edit), () => load());
@@ -76,7 +76,10 @@ export async function moduleView(root, rid, key) {
         try { await api('DELETE', `/api/modules/${key}/records/${r.id}`); toast('Record deleted.', 'success'); load(); } catch (ex) { toast(ex.message, 'error'); load(); }
       }
     }
-  });
+  };
+  // #view is reused between pages, so this handler must be removed when the page changes.
+  root.addEventListener('click', onClick);
+  S.cleanups.push(() => root.removeEventListener('click', onClick));
 
   // Live updates: someone else changed a record in this shop.
   S.cleanups.push(bus.on('record', (ev) => {
