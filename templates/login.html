@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="login-wrap">
+  <aside class="login-brand">
+    <a class="wordmark" href="{{ url_for('pages.welcome') }}" style="text-decoration:none">godrej</a>
+    <div>
+      <h2>Sign in to manage shop access.</h2>
+      <p>One place for permissions, records and a full audit trail across the plant.</p>
+      <ul>
+        <li><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Machine, Press, Assembly and Winding shops</li>
+        <li><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>View, Edit or No Access for each person</li>
+        <li><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Every sign-in and change is logged</li>
+      </ul>
+    </div>
+    <small>{{ company }} internal system</small>
+  </aside>
+
+  <main class="login-form-side">
+    <div class="top-right">{{ theme_toggle() }}</div>
+    <div class="login-card">
+      <h1>Sign in</h1>
+      <p class="sub">Choose how you sign in, then enter your credentials.</p>
+
+      {% if reason == 'timeout' %}<div class="banner warn" role="status">Your session ended because it was inactive. Sign in again to continue.</div>
+      {% elif reason == 'terminated' %}<div class="banner warn" role="status">An administrator ended your session. Sign in again to continue.</div>{% endif %}
+
+      <div class="seg-tabs" role="tablist" aria-label="Login type">
+        <button type="button" role="tab" data-type="admin" aria-selected="{{ 'true' if login_type == 'admin' else 'false' }}">Admin login</button>
+        <button type="button" role="tab" data-type="user" aria-selected="{{ 'true' if login_type == 'user' else 'false' }}">User login</button>
+      </div>
+
+      <form id="login-form" novalidate data-type="{{ login_type }}">
+        <label class="field"><span>Username</span><input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus></label>
+        <label class="field"><span>Password</span>
+          <span class="pw-wrap"><input type="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="icon-btn toggle" id="pw-toggle" aria-label="Show password"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></span>
+        </label>
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <button class="btn primary lg" type="submit" id="login-btn">Sign in</button>
+      </form>
+      <a class="back-link" href="{{ url_for('pages.welcome') }}">Back to welcome page</a>
+    </div>
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}

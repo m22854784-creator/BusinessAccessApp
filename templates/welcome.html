@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block body %}
+{{ super() }}
+<header class="site-head">
+  <span class="wordmark" aria-label="Godrej">godrej</span>
+  <nav>
+    {{ theme_toggle() }}
+    {% if signed_in %}<a class="btn primary" href="{{ url_for('pages.app_shell') }}">Open workspace</a>
+    {% else %}<a class="btn" href="{{ url_for('pages.login') }}">Sign in</a>{% endif %}
+  </nav>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>The right access to every shop, for every person.</h1>
+    <p class="lead">Decide who can view or edit Machine Shop, Press Shop, Assembly Shop and Winding Shop records, and keep a tamper-evident trail of everything that happens.</p>
+    <div class="cta">
+      {% if signed_in %}
+        <a class="btn primary lg" href="{{ url_for('pages.app_shell') }}">Continue as {{ user.full_name }}</a>
+      {% else %}
+        <a class="btn primary lg" href="{{ url_for('pages.login', type='admin') }}">Admin login</a>
+        <a class="btn lg" href="{{ url_for('pages.login', type='user') }}">User login</a>
+      {% endif %}
+    </div>
+    <p class="fine">{{ company }} internal system. Authorised users only; activity is logged.</p>
+  </div>
+
+  <div class="matrix-card" aria-label="Example access matrix">
+    <h2>Access at a glance</h2>
+    <p>Example of how permissions are set per person and per shop.</p>
+    <table class="matrix-table">
+      <thead><tr><th>Person</th><th>Machine</th><th>Press</th><th>Assembly</th><th>Winding</th></tr></thead>
+      <tbody>
+        <tr><td>Shift supervisor</td><td><span class="badge lvl-edit">Edit</span></td><td><span class="badge lvl-edit">Edit</span></td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-none">No Access</span></td></tr>
+        <tr><td>Production planner</td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-edit">Edit</span></td><td><span class="badge lvl-edit">Edit</span></td></tr>
+        <tr><td>Quality auditor</td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-view">View</span></td></tr>
+        <tr><td>Contract trainee</td><td><span class="badge lvl-none">No Access</span></td><td><span class="badge lvl-none">No Access</span></td><td><span class="badge lvl-view">View</span></td><td><span class="badge lvl-none">No Access</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="features">
+  <div><div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <h3>Everyone sees changes as they happen</h3><p>Many people can be signed in at once. Record edits, permission changes and alerts reach the right screens instantly.</p></div>
+  <div><div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <h3>Every action is recorded</h3><p>Sign-ins, sign-outs, record updates and user changes go into an audit trail that detects tampering. Export it to PDF or Excel.</p></div>
+  <div><div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+    <h3>Sessions protect themselves</h3><p>Idle sessions end automatically, repeated failed logins lock the account, and passwords are stored only as salted hashes.</p></div>
+</section>
+<footer class="site-foot"><span>{{ company }}</span><span>{{ app_name }}</span></footer>
+{% endblock %}
