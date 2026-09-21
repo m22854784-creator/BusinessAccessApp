@@ -291,5 +291,7 @@ export async function reports(root) {
   root.innerHTML = head('Export reports', 'Download reports as PDF or Excel. Each export is recorded in the audit log.') +
     `<div class="tiles">${R.map(([k, t, d, ic]) => `<div class="card tile"><div class="icon-wrap">${icon(ic)}</div><h2>${esc(t)}</h2><p>${esc(d)}</p>
       <div class="btns"><button class="btn" data-r="${k}" data-f="pdf">${icon('download', 16)}PDF</button><button class="btn" data-r="${k}" data-f="xlsx">${icon('download', 16)}Excel</button></div></div>`).join('')}</div>`;
-  root.addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (b) download(`/api/admin/export/${b.dataset.r}?fmt=${b.dataset.f}`); });
+  const onClick = (e) => { const b = e.target.closest('[data-r]'); if (b) download(`/api/admin/export/${b.dataset.r}?fmt=${b.dataset.f}`); };
+  root.addEventListener('click', onClick);
+  S.cleanups.push(() => root.removeEventListener('click', onClick));
 }
