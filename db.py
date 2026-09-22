@@ -245,7 +245,10 @@ def connect_sqlite(path):
 # with "?" placeholders, cur.lastrowid, and row["col"] / row[0] access -
 # exactly like the SQLite path - nothing outside this file needs an
 # if/else for which engine is active.
-_INSERT_RE = re.compile(r"^\s*INSERT\s", re.IGNORECASE)
+_INSERT_TABLE_RE = re.compile(r"^\s*INSERT\s+INTO\s+([A-Za-z_][A-Za-z0-9_]*)", re.IGNORECASE)
+# "permissions" has no surrogate id column (its primary key is user_id + module),
+# so it must never get an auto-appended "RETURNING id" - every other table does.
+_NO_ID_TABLES = {"permissions"}
 
 
 class Row(Mapping):
@@ -316,7 +319,8 @@ class PGConnection:
 
         cur = self._raw.cursor()
         pg_sql = self._translate(sql)
-        returning = bool(_INSERT_RE.match(pg_sql)) and "RETURNING" not in pg_sql.upper()
+        m = _INSERT_TABLE_RE.match(pg_sql)
+        returning = bool(m) and m.group(1).lower() not in _NO_ID_TABLES and "RETURNING" not in pg_sql.upper()
         if returning:
             pg_sql = pg_sql.rstrip().rstrip(";") + " RETURNING id"
         cur.execute(pg_sql, params)
