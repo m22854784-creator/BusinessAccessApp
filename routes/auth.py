@@ -7,6 +7,7 @@ from flask import Blueprint, current_app, g, jsonify, request, session, url_for
 
 import audit
 import security
+import db as db_module
 from db import get_db, iso, parse_iso, transaction, utcnow
 from realtime import broker
 
@@ -35,7 +36,7 @@ def login():
         return _err("Too many attempts. Wait a few minutes and try again.", 429)
 
     db = get_db()
-    row = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    row = db_module.find_user_by_username(db, username)
     portal = f"{login_type} portal"
 
     if row is None:
