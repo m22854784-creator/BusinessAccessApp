@@ -4,3 +4,6 @@ openpyxl>=3.1
 reportlab>=4.0
 # Optional production server:  waitress-serve --threads=32 --call app:create_app
 waitress>=3.0
+# Needed only when DATABASE_URL is set (PostgreSQL, e.g. on Render). Safe to
+# install even when running locally on SQLite - it just won't be used.
+psycopg2-binary>=2.9
