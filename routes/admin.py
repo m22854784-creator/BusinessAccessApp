@@ -8,6 +8,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 import audit
 import reports
 import security
+import db as db_module
 from db import get_db, iso, parse_iso, transaction, utcnow
 from realtime import broker
 from routes.modules import send_report
@@ -189,7 +190,7 @@ def _all_users(db):
     online = {r["user_id"]: r["c"] for r in db.execute(
         "SELECT user_id, COUNT(*) c FROM sessions WHERE active=1 GROUP BY user_id")}
     return [_user_json(u, perms.get(u["id"], {}), online.get(u["id"], 0))
-            for u in db.execute("SELECT * FROM users ORDER BY role, full_name COLLATE NOCASE")]
+            for u in db.execute("SELECT * FROM users ORDER BY role, LOWER(full_name)")]
 
 
 def _one_user(db, uid):
@@ -238,7 +239,7 @@ def create_user():
     problem = security.password_error(password, username)
     if problem:
         return _err(problem)
-    if db.execute("SELECT 1 FROM users WHERE username=?", (username,)).fetchone():
+    if db_module.username_taken(db, username):
         return _err("That username is already taken.", 409)
 
     now = iso()
