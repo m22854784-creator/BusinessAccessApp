@@ -29,6 +29,12 @@ class Config:
     COMPANY = "Godrej & Boyce"
 
     SECRET_KEY = _load_secret_key()
+    # If DATABASE_URL is set (Render provides this automatically when you attach a
+    # PostgreSQL database), use it - that data survives restarts and redeploys.
+    # Otherwise fall back to a local SQLite file, which is fine for your own PC
+    # but is NOT persistent on most free hosting (the disk gets wiped on restart).
+    DATABASE_URL = os.environ.get("DATABASE_URL", "")
+    DB_ENGINE = "postgres" if DATABASE_URL else "sqlite"
     DATABASE = os.environ.get("BAMS_DATABASE", os.path.join(INSTANCE_DIR, "bams.db"))
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024
 
