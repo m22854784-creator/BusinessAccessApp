@@ -16,6 +16,7 @@ so nothing outside this file needs to know which engine is active.
 import os
 import re
 import sqlite3
+from collections.abc import Mapping
 from contextlib import contextmanager
 from datetime import datetime, timezone
 
@@ -241,28 +242,52 @@ def connect_sqlite(path):
 
 # ---- PostgreSQL connection ---------------------------------------------------
 # A thin wrapper so every route file can keep using db.execute(sql, params)
-# with "?" placeholders and cur.lastrowid, exactly like the SQLite path -
-# nothing outside this file needs an if/else for which engine is active.
+# with "?" placeholders, cur.lastrowid, and row["col"] / row[0] access -
+# exactly like the SQLite path - nothing outside this file needs an
+# if/else for which engine is active.
 _INSERT_RE = re.compile(r"^\s*INSERT\s", re.IGNORECASE)
+
+
+class Row(Mapping):
+    """Mimics sqlite3.Row: supports row["col"], row[0], dict(row), row.get(...)."""
+    __slots__ = ("_idx", "_data")
+
+    def __init__(self, idx, data):
+        self._idx = idx    # {column_name: position}, shared across all rows of one query
+        self._data = data  # tuple of values for this row
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._data[key]
+        return self._data[self._idx[key]]
+
+    def __iter__(self):
+        return iter(self._idx)
+
+    def __len__(self):
+        return len(self._data)
 
 
 class PGCursor:
     def __init__(self, cur):
         self._cur = cur
         self.lastrowid = None
+        self._idx = {d[0]: i for i, d in enumerate(cur.description)} if cur.description else None
 
     def fetchone(self):
-        return self._cur.fetchone()
+        row = self._cur.fetchone()
+        return None if row is None else Row(self._idx, row)
 
     def fetchall(self):
-        return self._cur.fetchall()
+        return [Row(self._idx, r) for r in self._cur.fetchall()]
 
     @property
     def rowcount(self):
         return self._cur.rowcount
 
     def __iter__(self):
-        return iter(self._cur)
+        for r in self._cur:
+            yield Row(self._idx, r)
 
 
 class PGConnection:
@@ -289,8 +314,7 @@ class PGConnection:
             cur.execute(upper)
             return PGCursor(cur)
 
-        from psycopg2.extras import RealDictCursor
-        cur = self._raw.cursor(cursor_factory=RealDictCursor)
+        cur = self._raw.cursor()
         pg_sql = self._translate(sql)
         returning = bool(_INSERT_RE.match(pg_sql)) and "RETURNING" not in pg_sql.upper()
         if returning:
@@ -298,7 +322,7 @@ class PGConnection:
         cur.execute(pg_sql, params)
         wrapped = PGCursor(cur)
         if returning:
-            row = cur.fetchone()
+            row = wrapped.fetchone()
             wrapped.lastrowid = row["id"] if row else None
         return wrapped
 
